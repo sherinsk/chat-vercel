@@ -1,0 +1,44 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  username  String
+  isEmailverified Boolean @default(false)
+  profilePic        String?    @default("https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png")
+  messagesSent   Message[] @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+  notifications      Notification[]
+}
+
+
+model Message {
+  id          Int    @id @default(autoincrement())
+  content     String
+  senderId    Int
+  receiverId  Int
+  sender      User   @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User   @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  createdAt   DateTime @default(now())
+  notifications      Notification[]
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  messageId   Int
+  content     String
+  seen        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+  message     Message  @relation(fields: [messageId], references: [id])
+}
